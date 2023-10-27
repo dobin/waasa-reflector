@@ -9,6 +9,7 @@ from typing import List, Tuple
 from datetime import date
 import mimetypes
 import base64
+import hashlib
 
 
 views = Blueprint('views', __name__)
@@ -33,12 +34,18 @@ def file_simple(filename):
     if secure_filename(filename) != filename:
         return "Error", 500
     
-    response = make_response(b"data")
+    data = b"data"
+    response = make_response(data)
     mimeStr = get_mimetype(filename)
+    response.headers['X-Hash'] = compute_sha256(data)
     response.headers['Content-Type'] = mimeStr
     response.headers['Content-Disposition'] = "attachment; filename={}".format(filename)
     return response
 
+def compute_sha256(data):
+    sha256 = hashlib.sha256()
+    sha256.update(data)
+    return sha256.hexdigest()
 
 # Filename in URL
 # Filename in Content-Disposition
@@ -47,8 +54,9 @@ def file_simple(filename):
 def file_phase1(filename):
     if secure_filename(filename) != filename:
         return "Error", 500
-    
-    response = make_response(b"data")
+    data = b"data"
+    response = make_response(data)
+    response.headers['X-Hash'] = compute_sha256(data)
     response.headers['Content-Type'] = "octet/stream"
     response.headers['Content-Disposition'] = "attachment; filename={}".format(filename)
     return response
@@ -62,8 +70,9 @@ def file_phase2(filename_b64):
     filename = base64.b64decode(filename_b64).decode('utf-8')
     if secure_filename(filename) != filename:
         return "Error", 500
-
-    response = make_response(b"data")
+    data = b"data"
+    response = make_response(data)
+    response.headers['X-Hash'] = compute_sha256(data)
     response.headers['Content-Type'] = "octet/stream"
     response.headers['Content-Disposition'] = "attachment; filename={}".format(filename)
     return response
