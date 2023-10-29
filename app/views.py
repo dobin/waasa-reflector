@@ -34,13 +34,26 @@ def file_simple(filename):
     if secure_filename(filename) != filename:
         return "Error", 500
     
-    data = b"data"
+    data = getDataFor(filename)
     response = make_response(data)
     mimeStr = get_mimetype(filename)
     response.headers['X-Hash'] = compute_sha256(data)
     response.headers['Content-Type'] = mimeStr
     response.headers['Content-Disposition'] = "attachment; filename={}".format(filename)
     return response
+
+
+def getDataFor(filename: str) -> bytes:
+    ext = os.path.splitext(filename)[1]
+    filename = ext[1:] + ext
+    path = os.path.join("data", filename)
+    if os.path.exists(path):
+        with open(path, "rb") as f:
+            data = f.read()
+    else:
+        data = b"data"
+
+    return data
 
 def compute_sha256(data):
     sha256 = hashlib.sha256()
@@ -54,7 +67,7 @@ def compute_sha256(data):
 def file_phase1(filename):
     if secure_filename(filename) != filename:
         return "Error", 500
-    data = b"data"
+    data = getDataFor(filename)
     response = make_response(data)
     response.headers['X-Hash'] = compute_sha256(data)
     response.headers['Content-Type'] = "octet/stream"
@@ -70,7 +83,7 @@ def file_phase2(filename_b64):
     filename = base64.b64decode(filename_b64).decode('utf-8')
     if secure_filename(filename) != filename:
         return "Error", 500
-    data = b"data"
+    data = getDataFor(filename)
     response = make_response(data)
     response.headers['X-Hash'] = compute_sha256(data)
     response.headers['Content-Type'] = "octet/stream"
