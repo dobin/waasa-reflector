@@ -21,11 +21,7 @@ if __name__ == "__main__":
 		static_folder=os.path.join(app_folder, 'static'),
 		template_folder=os.path.join(app_folder, 'templates')
 	)
-
 	app.config['TEMPLATES_AUTO_RELOAD'] = True
-	app.config['SECRET_KEY'] = os.urandom(24)
-	app.config['SESSION_TYPE'] = 'filesystem'
-
 	app.config.from_prefixed_env()
 	app.register_blueprint(views)
 	app.run(host=args.listenip, port=args.listenport, debug=args.debug)
