@@ -61,9 +61,18 @@ def file_phase1(filename):
 # NOT Correct MimeType
 @views.route("/nomimenofilename/<filename_b64>")
 def file_phase2(filename_b64):
-    filename = base64.b64decode(filename_b64).decode('utf-8')
-    if secure_filename(filename) != filename:
+    try:
+        filename = base64.b64decode(filename_b64).decode('utf-8')
+    except:
+        # it may be invalid base64 encoding
         return "Error", 500
+    if secure_filename(filename) != filename:
+        # hack attempts
+        return "Error", 500
+    # invalid filename
+    if not '.' in filename:
+        return "Error", 500
+
     data = getDataFor(filename)
     response = make_response(data)
     response.headers['X-Hash'] = compute_sha256(data)
